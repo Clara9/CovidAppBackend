@@ -12,6 +12,7 @@ mydb = mysql.connector.connect(
   port="50036",
   database = "CS411"
 )
+cursor = mydb.cursor()
 
 def db_select(input):
     cuursor = mydb.cursor()
@@ -23,6 +24,7 @@ def db_fetch(input):
     s = cursor.execute(inpuut)
     return cursor.fetchall()
 
+## check if input fields is in required fields
 # def validator(input, required):
 #     keys = input.keys()
 #     for(i in required):
@@ -31,36 +33,34 @@ def db_fetch(input):
 #     return True    
 
 def point(request):
-    body  = request.json_body
     # # check if in required
     # if (not validator(body, ['latitude', 'longitude'])):
     #     return {
     #         "error": "missing balabalbal"
     #     }
 
-    cursor = mydb.cursor()
-    s = cursor.execute("SELECT * FROM CS411_Point")
-
-    # give value to attributes
-    content = cursor.fetchall()[0]
-    pid, latitude, longitude, create_time = 0, 0.0, 0.0, datetime.datetime.now()
-    pid, latitude, longitude, create_time = content
-
-    # sql = 'SELECT * FROM POINT WHERE point_id = ' + body['point_id']
-    point_get = ""
     if request.method == 'GET':
         point_get = 'Select * From CS411_Point Where Point_id = 1'
         cursor.execute(point_get)
-        tmp = c.fetchall()
-    # print(tmp)
+        p_content = cursor.fetchall()[0]
+        # initialize
+        pid, lati, longi, dtime = 0, 0.0, 0.0, datetime.datetime.now()
+        pid, lati, longi, dtime = p_content
+        return {
+            "Point_id": pid,
+            "Latitude": lati,
+            "Longitude": longti,
+            "Create_time": dtime
+        }
 
-    if(request.method == 'POST'):
-        pid = random.randint(0, 500)
-        lati = body['Latitude']
-        longti = body['Longitude']
-        dtime = body['Create_time']
+    elif(request.method == 'POST'):
+        body  = request.json_body
+        pid2 = random.randint(0, 2000)
+        lati2 = body['Latitude']
+        longti2 = body['Longitude']
+        dtime2 = body['Create_time']
         point_post = 'Insert Into CS411_Point(Point_id, Latitude, Longitude, Create_time) VALUES (' +\
-            str(pid) + ',' + str(lati) + ',' + str(longti) + ',"' + str(dtime) + '")'
+            str(pid2) + ',' + str(lati2) + ',' + str(longti2) + ',"' + str(dtime2) + '")'
         # print(point_post)
         cursor.execute(point_post)
         affected_rows = cursor.rowcount
@@ -70,26 +70,60 @@ def point(request):
 
         # where post_id = curr_id
         return {
-            "Point_id": pid,
-            "Latitude": lati,
-            "Longitude": longti,
-            "Create_time": dtime
+            "Point_id": pid2,
+            "Latitude": lati2,
+            "Longitude": longti2,
+            "Create_time": dtime2
         }
 
-def point_id(request):
-    return [request.matchdict['id']]
-    if request.method == 'PUT':
-        return Response('Hello World!')
-    elif request.method == 'DELETE':
-        return Response('Hello Again')
-    return Response('Hello')
+# def point_id(request):
+#     return [request.matchdict['id']]
+#     if request.method == 'PUT':
+#         return Response('Hello World!')
+#     elif request.method == 'DELETE':
+#         return Response('Hello Again')
+#     return Response('Hello')
 
 def client(request):
+    # must have a row before
     if request.method == 'GET':
-        return Response('Hello World!')
+        client_last_id = cursor.lastrowid
+        client_get = 'Select * ' + 'From CS411_Client Where Client_Id = ' + str(client_last_id)
+        cursor.execute(point_get)
+        c_content = cursor.fetchall()[0]
+        # initialize to be not sick (flag_s = 0)
+        cid, dtime, flag_s, postc = 0, datetime.datetime.now(), 0, 0
+        cid, dtime, flag_s, postc = c_content
+        return {
+            "Client_id": cid,
+            "Create_time": dtime,
+            "Sick_or_not": flag_s,
+            "Postcode": postc
+        }
+
+    # no need to return for updates
+    elif request.method == 'PUT':
+        client_put = 'Update CS411_Client set Sick_or_not=0 Where Client_id=' + str(client_last_id)
+        cursor.execute(client_put)
+
     elif request.method == 'POST':
-        return Response('Hello Again')
-    return Response('Hello!')
+        body = request.json_body
+        cid2 = random.randint(0, 100)
+        dtime2 = body['Create_time']
+        flag_s2 = body['Sick_or_not']
+        postc2 = body['Postcode']
+        client_post = 'Insert Into CS411_Client(Client_id, Create_time, Sick_or_not, Postcode) VALUES (' +\
+            str(cid2) + ',"' + str(dtime2) + '",' + str(flag_s2) + ',' + str(postc2) + ')'
+        print(client_post)
+        if affected_rows == 1:
+            print("Successfully inserted")
+        # cursor.execute(client_post)
+        return {
+            "Client_id": cid2,
+            "Create_time": dtime2,
+            "Sick_or_not": flag_s2,
+            "Postcode": postc2
+        }
 
 def client_id(request):
     if request.method == 'GET':
@@ -104,9 +138,6 @@ if __name__ == '__main__':
     with Configurator() as config:
         config.add_route('point', '/point')
         config.add_view(point, route_name='point', renderer='json')
-
-        config.add_route('point_id', '/point/{id}')
-        config.add_view(point_id, route_name='point_id', renderer='json')
 
         config.add_route('client', '/client')
         config.add_view(client, route_name='client', renderer='json')
