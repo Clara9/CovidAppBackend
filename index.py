@@ -24,22 +24,29 @@ def db_fetch(input):
     s = cursor.execute(inpuut)
     return cursor.fetchall()
 
-## check if input fields is in required fields
-# def validator(input, required):
-#     keys = input.keys()
-#     for(i in required):
-#         if (i not in keys):
-#             return False
-#     return True    
+# check if input fields is in required fields
+def validator(input, required):
+    keys = input.keys()
+    counter_v = 0
+    for field in input.keys():
+        # field in required
+        if field in required:
+            counter_v += 1
+            continue
+        # one of the fields not in required
+        else:
+            return False
+    if counter_v == len(required):
+        return True
+    return False
 
 def point(request):
-    # # check if in required
-    # if (not validator(body, ['latitude', 'longitude'])):
-    #     return {
-    #         "error": "missing balabalbal"
-    #     }
-
     if request.method == 'GET':
+        p_fields = ['Latitude', 'Longitude', 'Create_time']
+        if not validator(input, p_fields):
+            print('Status: 404 Not Found')
+            return
+
         point_get = 'Select * From CS411_Point Where Point_id = 1'
         cursor.execute(point_get)
         p_content = cursor.fetchall()[0]
@@ -76,6 +83,10 @@ def point(request):
             "Create_time": dtime2
         }
 
+    elif request.method == 'DEL':
+        point_del = 'Delete From CS411_Point Where Point_id = ' + str(point_last_id)
+        cursor.execute(point_del)
+
 # def point_id(request):
 #     return [request.matchdict['id']]
 #     if request.method == 'PUT':
@@ -86,8 +97,8 @@ def point(request):
 
 def client(request):
     # must have a row before
+    client_last_id = cursor.lastrowid
     if request.method == 'GET':
-        client_last_id = cursor.lastrowid
         client_get = 'Select * ' + 'From CS411_Client Where Client_Id = ' + str(client_last_id)
         cursor.execute(point_get)
         c_content = cursor.fetchall()[0]
@@ -106,15 +117,22 @@ def client(request):
         client_put = 'Update CS411_Client set Sick_or_not=0 Where Client_id=' + str(client_last_id)
         cursor.execute(client_put)
 
+    elif request.method == 'DEL':
+        client_del = 'Delete From CS411_Client Where Client_id = ' + str(client_last_id)
+        cursor.execute(client_del)
+
     elif request.method == 'POST':
         body = request.json_body
         cid2 = random.randint(0, 100)
+        # problem : not repetitive ids
+        pid3 = random.randint(0, 1000)
         dtime2 = body['Create_time']
         flag_s2 = body['Sick_or_not']
         postc2 = body['Postcode']
         client_post = 'Insert Into CS411_Client(Client_id, Create_time, Sick_or_not, Postcode) VALUES (' +\
             str(cid2) + ',"' + str(dtime2) + '",' + str(flag_s2) + ',' + str(postc2) + ')'
-        print(client_post)
+        ac_post = 'Insert Into CS411_Affected_Client_Point(Point, Client_id) VALUES (' +\
+            str(pid3) + ',' + str(cid2) + ')'
         if affected_rows == 1:
             print("Successfully inserted")
         # cursor.execute(client_post)
@@ -125,14 +143,18 @@ def client(request):
             "Postcode": postc2
         }
 
-def client_id(request):
-    if request.method == 'GET':
-        return Response('Hello World!')
-    elif request.method == 'DELETE':
-        return Response('Hello Again')
-    elif request.method == 'PUT':
-        return Response('Hello Third Time')
-    return Response('Hello!')
+def affected_client(request):
+    if request.method == 'DEL':
+        ac_del = 'Delete From CS411_Affected_Client_Point Where Client_id = ' + str(client_last_id)
+        cursor.execute(client_del)
+# def client_id(request):
+#     if request.method == 'GET':
+#         return Response('Hello World!')
+#     elif request.method == 'DELETE':
+#         return Response('Hello Again')
+#     elif request.method == 'PUT':
+#         return Response('Hello Third Time')
+#     return Response('Hello!')
 
 if __name__ == '__main__':
     with Configurator() as config:
@@ -147,4 +169,3 @@ if __name__ == '__main__':
         app = config.make_wsgi_app()
     server = make_server('0.0.0.0', 9000, app)
     server.serve_forever()
-
