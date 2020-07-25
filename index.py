@@ -2,6 +2,8 @@ from wsgiref.simple_server import make_server
 from pyramid.config import Configurator
 from pyramid.response import Response
 import mysql.connector
+import datetime
+import random
 
 mydb = mysql.connector.connect(
   host="173.82.151.35",
@@ -11,58 +13,81 @@ mydb = mysql.connector.connect(
   database = "CS411"
 )
 
-def db_execute(input):
-    c = mydb.cursor()
-    s = c.execute("SELECT * FROM CS411_Point")
-    return c.fetchall()
+def db_select(input):
+    cuursor = mydb.cursor()
+    s = cursor.execute(inpuut)
+    return cursor.fetchall()
 
-def validator(input, required):
-    keys = input.keys()
-    for(i in required):
-        if (i not in keys):
-            return False
-    return True    
+def db_fetch(input):
+    cuursor = mydb.cursor()
+    s = cursor.execute(inpuut)
+    return cursor.fetchall()
+
+# def validator(input, required):
+#     keys = input.keys()
+#     for(i in required):
+#         if (i not in keys):
+#             return False
+#     return True    
 
 def point(request):
-    
-
     body  = request.json_body
-    # check if in required
-    if (not validator(body, ['latitude', 'longitude'])):
-        return {
-            "error": "missing balabalbal"
-        }
+    # # check if in required
+    # if (not validator(body, ['latitude', 'longitude'])):
+    #     return {
+    #         "error": "missing balabalbal"
+    #     }
 
-    c = mydb.cursor()
-    s = c.execute("SELECT * FROM CS411_Point")
-    return c.fetchall()
-    sql = 'SELECT * FROM POINT WHERE point_id = ' + body['point_id']
+    cursor = mydb.cursor()
+    s = cursor.execute("SELECT * FROM CS411_Point")
+
+    # give value to attributes
+    content = cursor.fetchall()[0]
+    pid, latitude, longitude, create_time = 0, 0.0, 0.0, datetime.datetime.now()
+    pid, latitude, longitude, create_time = content
+
+    # sql = 'SELECT * FROM POINT WHERE point_id = ' + body['point_id']
+    point_get = ""
+    if request.method == 'GET':
+        point_get = 'Select * From CS411_Point Where Point_id = 1'
+        cursor.execute(point_get)
+        tmp = c.fetchall()
+    # print(tmp)
 
     if(request.method == 'POST'):
-        point_id = random()
-        create_time = datetime()
-        sql = 'INSERT INTO POINT (point_id, B, C) VALUES (' + body['A'] + ')'
+        pid = random.randint(0, 500)
+        lati = body['Latitude']
+        longti = body['Longitude']
+        dtime = body['Create_time']
+        point_post = 'Insert Into CS411_Point(Point_id, Latitude, Longitude, Create_time) VALUES (' +\
+            str(pid) + ',' + str(lati) + ',' + str(longti) + ',"' + str(dtime) + '")'
+        # print(point_post)
+        cursor.execute(point_post)
+        affected_rows = cursor.rowcount
+        if affected_rows == 1:
+            print("Successfully inserted")
+        # "affected rows = {}".format():
+
         # where post_id = curr_id
         return {
-            "point)id": point_id,
-            "latitude": body['latitude'],
-            "longitutde": body['longitude'],
-            "create_time": create_time
+            "Point_id": pid,
+            "Latitude": lati,
+            "Longitude": longti,
+            "Create_time": dtime
         }
-    
 
 def point_id(request):
     return [request.matchdict['id']]
     if request.method == 'PUT':
         return Response('Hello World!')
-    else request.method == 'DELETE':
+    elif request.method == 'DELETE':
         return Response('Hello Again')
     return Response('Hello')
 
 def client(request):
     if request.method == 'GET':
         return Response('Hello World!')
-    else request.method == 'POST':
+    elif request.method == 'POST':
         return Response('Hello Again')
     return Response('Hello!')
 
