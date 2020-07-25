@@ -1,4 +1,4 @@
 # CS411_Backend
-Using MySQL (MariaDB)
-Connected With Django
+Using REST API
+Pyramid for router
 
