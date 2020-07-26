@@ -199,9 +199,10 @@ def client_complex(request):
     curr_op = request.matchdict['name']
     if request.method == 'GET':
         if curr_op == 'state':
-            complex_q1 = 'Select count(ac.Client_id) ' +\
-            'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
-            'Group by cu.state_id'
+            # complex_q1 = 'Select count(ac.Client_id) ' +\
+            # 'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
+            # 'Group by cu.state_id'
+            complex_q1 = 'select count(ac.Client_id) from CS411_Affected_Client ac natural join CS411_uszips cu group by cu.state_id'
             print(complex_q1)
             cursor.execute(complex_q1)
             count_state = cursor.fetchall()[0]
@@ -210,9 +211,9 @@ def client_complex(request):
                 "number": count_state
             }
         if curr_op == 'zipcode':
-            complex_q2 = 'Select count(cacp.Point_id) ' +\
-            'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
-            'Group by cu2.zip'
+            # complex_q2 = 'Select count(cacp.Point_id) ' +\
+            # 'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
+            # 'Group by cu2.zip'
             cursor.execute(complex_q2)
             count_zipcode = cursor.fetchall()
             print(count_zipcode)
@@ -241,4 +242,3 @@ if __name__ == '__main__':
 
     server = make_server('0.0.0.0', 9000, app)
     server.serve_forever()
-
