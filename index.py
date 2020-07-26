@@ -67,26 +67,12 @@ def point_id(request):
             print("Successfully inserted")
         # # initialize
         # lati, longi, dtime = 0.0, 0.0, datetime.datetime.now()
-        # pid, lati, longi, dtime = [str(item) for item in p_content]
         return {
             "Point_id": pid
         }
 
 def client(request):
-    # must have a row before
-
-    # no need to return for updates
-    if request.method == 'PUT':
-        client_put = 'Update CS411_Client set Sick_or_not=0 Where Client_id=' + str(client_last_id)
-        cursor.execute(client_put)
-
-    elif request.method == 'DEL':
-        client_del = 'Delete From CS411_Client Where Client_id = ' + str(client_last_id)
-        cursor.execute(client_del)
-    
-def client_id(request):
-    pid = request.matchdict['id']
-    body  = request.json_body
+    body = request.json_body
     # print(body.Latitude)
     if request.method == 'POST':
     # p_fields = ['Latitude', 'Longitude', 'Create_time']
@@ -94,19 +80,51 @@ def client_id(request):
     #     print('Status: 404 Not Found')
     #     return
         client_insert = 'Insert Into CS411_Client(Postcode) VALUES (' + str(body['Postcode']) + ')'
-        print(client_insert)
+        # print(client_insert)
         cursor.execute(client_insert)
         mydb.commit()
-
+        client_select = 'Select last_insert_id()'
+        cursor.execute(client_select)
+        # get result of last query
+        cid = cursor.fetchall()[0][0]
+        # print(cid)
+        client_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(client_all)
+        c_content = cursor.fetchall()[0]
+        print(c_content)
+        cid, ct, s_flag, postc = [str(item) for item in c_content]
+        return {
+            "Client_id": cid,
+            "Creat_time": ct,
+            "Sick_or_not": s_flag,
+            "Post_code": postc
+        }
         # print(point_insert)
-        affected_rows = cursor.rowcount
-        if affected_rows == 1:
-            print("Successfully inserted")
+
         # # initialize
         # lati, longi, dtime = 0.0, 0.0, datetime.datetime.now()
-        # pid, lati, longi, dtime = [str(item) for item in p_content]
+    elif request.method == 'PUT':
+        client_put = 'Update CS411_Client set Sick_or_not=0 Where Client_id=' + str(client_last_id)
+        cursor.execute(client_put)
+    
+    elif request.method == 'DEL':
+        client_del = 'Delete From CS411_Client Where Client_id = ' + str(client_last_id)
+        cursor.execute(client_del)
+
+def client_id(request):
+    cid = request.matchdict['id']
+
+    if request.method == 'GET':
+        client_get = 'Select * ' + 'From CS411_Client Where Client_Postcode = ' + str(cid)
+        cursor.execute(client_get)
+        c_content = cursor.fetchall()[0]
+        # initialize to be not sick (flag_s = 0)
+        dtime, flag_s, postc = datetime.datetime.now(), 0, 0
+        dtime, flag_s, postc = c_content
         return {
-            "Point_id": pid
+            "Create_time": dtime,
+            "Sick_or_not": flag_s,
+            "Postcode": postc
         }
     # elif request.method == 'POST':
     #     body = request.json_body
