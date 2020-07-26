@@ -42,34 +42,105 @@ def db_fetch(input):
 
 def point(request):
     # client_last_id = cursor.lastrowid
-
- 
-    if request.method == 'DEL':
-        point_del = 'Delete From CS411_Point Where Point_id = ' + str(point_last_id)
-        cursor.execute(point_del)
+    body = request.json_body
+    if request.method == 'POST':
+        point_insert = 'Insert Into CS411_Point(Latitude, Longitude, Postcode) VALUES ('\
+         + str(body['Latitude']) + ',' + str(body['Longitude']) + ',' + str(body['Postcode']) + ')'
+        cursor.execute(point_insert)
+        mydb.commit()
+        point_select = 'Select last_insert_id()'
+        cursor.execute(point_select)
+        # get result of last query
+        pid = cursor.fetchall()[0][0]
+        # print(cid)
+        point_all = 'Select * From CS411_Point Where Point_id = ' + str(pid)
+        cursor.execute(point_all)
+        p_content = cursor.fetchall()[0]
+        print(p_content)
+        pid, lati, longti, times, postc = [str(item) for item in p_content]
+        return {
+            "Point_id": pid,
+            "Latitude": lati,
+            "Longitude": longti,
+            "Create_time": times,
+            "Postcode": postc
+        }
 
 def point_id(request):
     pid = request.matchdict['id']
-    body  = request.json_body
-    # print(body.Latitude)
-    if request.method == 'POST':
-    # p_fields = ['Latitude', 'Longitude', 'Create_time']
-    # if not validator(input, p_fields):
-    #     print('Status: 404 Not Found')
-    #     return
-        point_insert = 'Insert Into CS411_Point(Latitude, Longitude) VALUES (' + str(body['Latitude']) + ',' + str(body['Longitude']) + ')'
-        cursor.execute(point_insert)
-        mydb.commit()
-
-        # print(point_insert)
-        affected_rows = cursor.rowcount
-        if affected_rows == 1:
-            print("Successfully inserted")
-        # # initialize
-        # lati, longi, dtime = 0.0, 0.0, datetime.datetime.now()
+    if request.method == 'GET':
+        point_get = 'Select * ' + 'From CS411_Point Where Point_id = ' + str(pid)
+        cursor.execute(point_get)
+        pi_content = cursor.fetchall()[0]
+        # print(pi_content)
+        # initialize to be not sick (flag_s = 0)
+        pid, lati, longti, times, postc = [str(item) for item in pi_content]
         return {
-            "Point_id": pid
+            "Point_id": pid,
+            "Latitude": lati,
+            "Longitude": longti,
+            "Create_time": times,
+            "Postcode": postc
         }
+
+    if request.method == 'PUT':
+        point_put = 'Update CS411_Client Set Sick_or_not=1 Where Client_id = ' + str(pid)
+        cursor.execute(point_put)
+
+        point_id_all = 'Select * From CS411_Client Where Client_id = ' + str(pid)
+        cursor.execute(point_id_all)
+
+        pia_content = cursor.fetchall()[0]
+        pid, lati, longti, times, postc = [str(item) for item in pia_content]
+        # If current user self-reports as infected, put him/her into affected.
+
+        return {
+            "Point_id": pid,
+            "Latitude": lati,
+            "Longitude": longti,
+            "Create_time": times,
+            "Postcode": postc
+        }
+
+    if request.method == 'DELETE':
+        point_del_before = 'Select * From CS411_Point Where Point_id = ' + str(pid)
+        cursor.execute(point_del_before)
+        cp_content = cursor.fetchall()[0]
+        point_del_after = 'Delete From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(point_del_after)
+        # print(cp_content)
+        pid, lati, longti, times, postc = [str(item) for item in cp_content]
+        return {
+            "Point_id": pid,
+            "Latitude": lati, 
+            "Longitude": longti,
+            "Create_time": times,
+            "Postcode": postc
+        }
+
+def client_complex(request):
+    curr_op = request.matchdict['name']
+    if request.method == 'GET':
+        if curr_op == 'state':
+            complex_q1 = 'Select count(ac.Client_id) ' +\
+            'From CS411_Affected_Client ac natural join CS411_uszips cu ' +\
+            'Group by cu.state_id'
+            cursor.execute(complex_q1)
+            count_state = cursor.fetchall()[0]
+            print(count_state)
+            return {
+                "number": count_state
+            }
+        if curr_op == 'zipcode':
+            complex_q2 = 'Select count(cacp.Point_id) ' +\
+            'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
+            'Group by cu2.zip'
+            cursor.execute(complex_q2)
+            count_zipcode = cursor.fetchall()
+            print(count_zipcode)
+            # return {
+            #     "number": count_zipcode
+            # }
 
 def client(request):
     body = request.json_body
@@ -82,7 +153,7 @@ def client(request):
         client_insert = 'Insert Into CS411_Client(Postcode) VALUES (' + str(body['Postcode']) + ')'
         # print(client_insert)
         cursor.execute(client_insert)
-        mydb.commit()
+
         client_select = 'Select last_insert_id()'
         cursor.execute(client_select)
         # get result of last query
@@ -91,7 +162,7 @@ def client(request):
         client_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_all)
         c_content = cursor.fetchall()[0]
-        print(c_content)
+        # print(c_content)
         cid, ct, s_flag, postc = [str(item) for item in c_content]
         return {
             "Client_id": cid,
@@ -99,60 +170,67 @@ def client(request):
             "Sick_or_not": s_flag,
             "Post_code": postc
         }
-        # print(point_insert)
-
-        # # initialize
-        # lati, longi, dtime = 0.0, 0.0, datetime.datetime.now()
-    elif request.method == 'PUT':
-        client_put = 'Update CS411_Client set Sick_or_not=0 Where Client_id=' + str(client_last_id)
-        cursor.execute(client_put)
-    
-    elif request.method == 'DEL':
-        client_del = 'Delete From CS411_Client Where Client_id = ' + str(client_last_id)
-        cursor.execute(client_del)
 
 def client_id(request):
     cid = request.matchdict['id']
 
     if request.method == 'GET':
-        client_get = 'Select * ' + 'From CS411_Client Where Client_Postcode = ' + str(cid)
+        client_get = 'Select * ' + 'From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_get)
-        c_content = cursor.fetchall()[0]
+        ci_content = cursor.fetchall()[0]
+        print(ci_content)
         # initialize to be not sick (flag_s = 0)
-        dtime, flag_s, postc = datetime.datetime.now(), 0, 0
-        dtime, flag_s, postc = c_content
+        cid, ctime, flag_s, postc = [str(item) for item in ci_content]
         return {
-            "Create_time": dtime,
+            "Client_id": cid,
+            "Creat_time": ctime,
             "Sick_or_not": flag_s,
-            "Postcode": postc
+            "Post_code": postc
         }
-    # elif request.method == 'POST':
-    #     body = request.json_body
-    #     cid2 = random.randint(0, 100)
-    #     # problem : not repetitive ids
-    #     pid3 = random.randint(0, 1000)
-    #     dtime2 = body['Create_time']
-    #     flag_s2 = body['Sick_or_not']
-    #     postc2 = body['Postcode']
-    #     client_post = 'Insert Into CS411_Client(Client_id, Create_time, Sick_or_not, Postcode) VALUES (' +\
-    #         str(cid2) + ',"' + str(dtime2) + '",' + str(flag_s2) + ',' + str(postc2) + ')'
-    #     ac_post = 'Insert Into CS411_Affected_Client_Point(Point, Client_id) VALUES (' +\
-    #         str(pid3) + ',' + str(cid2) + ')'
-    #     if affected_rows == 1:
-    #         print("Successfully inserted")
-    #     # cursor.execute(client_post)
-    #     return {
-    #         "Client_id": cid2,
-    #         "Create_time": dtime2,
-    #         "Sick_or_not": flag_s2,
-    #         "Postcode": postc2
-    #     }
 
+    if request.method == 'PUT':
+        client_put = 'Update CS411_Client Set Sick_or_not=1 Where Client_id = ' + str(cid)
+        cursor.execute(client_put)
+
+        client_id_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(client_id_all)
+
+        ci_content = cursor.fetchall()[0]
+        cid, ct, s_flag, postc = [str(item) for item in ci_content]
+        # If current user self-reports as infected, put him/her into affected.
+        if s_flag == 1:
+            ac_insert = 'Insert Into CS411_Affected_Client(Client_id) VALUES (' + str(cid) + ')'
+            cursor.execute(ac_insert)
+        
+        return {
+            "Client_id": cid,
+            "Creat_time": ct,
+            "Sick_or_not": s_flag,
+            "Post_code": postc
+        }
+
+    if request.method == 'DELETE':
+        client_del_before = 'Select * From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(client_del_before)
+        cd_content = cursor.fetchall()[0]
+        client_del_after = 'Delete From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(client_del_after)
+        a_client_del_after2 = 'Delete From CS411_Affected_Client Where Client_id = ' + str(cid)
+        cursor.execute(client_del_after2)
+        # print(cd_content)
+        cid, ct, s_flag, postc = [str(item) for item in cd_content]
+        return {
+            "Client_id": cid,
+            "Creat_time": ct,
+            "Sick_or_not": s_flag,
+            "Post_code": postc
+        }
 
 def affected_client(request):
-    if request.method == 'DEL':
+    if request.method == 'DELETE':
         ac_del = 'Delete From CS411_Affected_Client_Point Where Client_id = ' + str(client_last_id)
-        cursor.execute(client_del)
+        cursor.execute(ac_del)
+        print(ac_del)
 
 if __name__ == '__main__':
     with Configurator() as config:
@@ -168,5 +246,10 @@ if __name__ == '__main__':
         config.add_route('client_id', '/client/{id}')
         config.add_view(client_id, route_name='client_id', renderer='json')
         app = config.make_wsgi_app()
+
+        config.add_route('client_complex', '/client_complex/{name}')
+        config.add_view(client_complex, route_name='client_complex', renderer='json')
+
     server = make_server('0.0.0.0', 9000, app)
     server.serve_forever()
+
