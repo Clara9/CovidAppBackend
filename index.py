@@ -208,17 +208,11 @@ def client_state(request):
             # cursor.execute(complex_q1)
             # count_state = cursor.fetchall()[0]
             # print(count_state)
-            return {
-                "IL": [6, 6, 0, 7, 3, 5, 7]
-            }
+            return [6, 6, 0, 7, 3, 5, 7]
         if state == 'MI':
-            return {
-                "MI": [10, 4, 1, 7, 7, 4, 6]
-            }
+            return [10, 4, 1, 7, 7, 4, 6]
         if state == 'zipcode':
-            return {
-                "IN": [3, 9, 7, 8, 6, 2, 4]
-            }
+            return [3, 9, 7, 8, 6, 2, 4]
             # # complex_q2 = 'Select count(cacp.Point_id) ' +\
             # # 'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
             # # 'Group by cu2.zip'
@@ -233,17 +227,11 @@ def client_zip(request):
     zipc = request.matchdict['zip']
     if request.method == 'GET':
         if zipc == '61801':
-            return {
-                "IL": [7, 9, 7, 8, 3, 1, 5]
-            }
+            return [7, 9, 7, 8, 3, 1, 5]
         if zipc == '61820':
-            return {
-                "MI": [10, 7, 6, 8, 2, 8, 3]
-            }
+            return [10, 7, 6, 8, 2, 8, 3]
         if zipc == '61825':
-            return {
-                "IN": [5, 8, 2, 8, 6, 3, 7]
-            }
+            return [5, 8, 2, 8, 6, 3, 7]
 
 if __name__ == '__main__':
     with Configurator() as config:
