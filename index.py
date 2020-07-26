@@ -195,32 +195,55 @@ def affected_client(request):
         }
 
 
-def client_complex(request):
-    curr_op = request.matchdict['name']
+def client_state(request):
+    # curr_op = request.matchdict['name']
+    state = request.matchdict['state']
     if request.method == 'GET':
-        if curr_op == 'state':
+        if state == 'IL':
             # complex_q1 = 'Select count(ac.Client_id) ' +\
             # 'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
             # 'Group by cu.state_id'
-            complex_q1 = 'select count(ac.Client_id) from CS411_Affected_Client ac natural join CS411_uszips cu group by cu.state_id'
-            print(complex_q1)
-            cursor.execute(complex_q1)
-            count_state = cursor.fetchall()[0]
-            print(count_state)
+            # complex_q1 = 'select count(ac.Client_id) from CS411_Affected_Client ac natural join CS411_uszips cu group by cu.state_id'
+            # print(complex_q1)
+            # cursor.execute(complex_q1)
+            # count_state = cursor.fetchall()[0]
+            # print(count_state)
             return {
-                "number": count_state
+                "IL": [6, 6, 0, 7, 3, 5, 7]
             }
-        if curr_op == 'zipcode':
-            # complex_q2 = 'Select count(cacp.Point_id) ' +\
-            # 'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
-            # 'Group by cu2.zip'
-            cursor.execute(complex_q2)
-            count_zipcode = cursor.fetchall()
-            print(count_zipcode)
-            # return {
-            #     "number": count_zipcode
-            # }
+        if state == 'MI':
+            return {
+                "MI": [10, 4, 1, 7, 7, 4, 6]
+            }
+        if state == 'zipcode':
+            return {
+                "IN": [3, 9, 7, 8, 6, 2, 4]
+            }
+            # # complex_q2 = 'Select count(cacp.Point_id) ' +\
+            # # 'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
+            # # 'Group by cu2.zip'
+            # cursor.execute(complex_q2)
+            # count_zipcode = cursor.fetchall()
+            # print(count_zipcode)
+            # # return {
+            # #     "number": count_zipcode
+            # # }
 
+def client_zip(request):
+    zipc = request.matchdict['zip']
+    if request.method == 'GET':
+        if zipc == '61801':
+            return {
+                "IL": [7, 9, 7, 8, 3, 1, 5]
+            }
+        if zipc == '61820':
+            return {
+                "MI": [10, 7, 6, 8, 2, 8, 3]
+            }
+        if zipc == '61825':
+            return {
+                "IN": [5, 8, 2, 8, 6, 3, 7]
+            }
 
 if __name__ == '__main__':
     with Configurator() as config:
@@ -237,8 +260,22 @@ if __name__ == '__main__':
         config.add_view(client_id, route_name='client_id', renderer='json')
         app = config.make_wsgi_app()
 
-        config.add_route('client_complex', '/client_complex/{name}')
-        config.add_view(client_complex, route_name='client_complex', renderer='json')
+        # config.add_route('client_complex', '/client_complex/{name}')
+        # config.add_view(client_complex, route_name='client_complex', renderer='json')
+
+        config.add_route('client_state', '/state/{state}')
+        config.add_view(client_state, route_name='client_state', renderer='json')
+        app = config.make_wsgi_app()
+
+        config.add_route('client_zip', '/zip/{zip}')
+        config.add_view(client_zip, route_name='client_zip', renderer='json')
+        app = config.make_wsgi_app()
+
+        # config.add_route('client_state', '/state/{state}')
+        # config.add_view(client_state, route_name='client_state', renderer='json')
+
+        # config.add_route('client_zip', '/zip/{zip}')
+        # config.add_view(client_zip, route_name='client_zip}', renderer='json')
 
     server = make_server('0.0.0.0', 9000, app)
     server.serve_forever()
