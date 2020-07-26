@@ -41,7 +41,6 @@ def db_fetch(input):
 #     return False
 
 def point(request):
-    # client_last_id = cursor.lastrowid
     body = request.json_body
     if request.method == 'POST':
         point_insert = 'Insert Into CS411_Point(Latitude, Longitude, Postcode) VALUES ('\
@@ -72,28 +71,8 @@ def point_id(request):
         point_get = 'Select * ' + 'From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_get)
         pi_content = cursor.fetchall()[0]
-        # print(pi_content)
         # initialize to be not sick (flag_s = 0)
         pid, lati, longti, times, postc = [str(item) for item in pi_content]
-        return {
-            "Point_id": pid,
-            "Latitude": lati,
-            "Longitude": longti,
-            "Create_time": times,
-            "Postcode": postc
-        }
-
-    if request.method == 'PUT':
-        point_put = 'Update CS411_Client Set Sick_or_not=1 Where Client_id = ' + str(pid)
-        cursor.execute(point_put)
-
-        point_id_all = 'Select * From CS411_Client Where Client_id = ' + str(pid)
-        cursor.execute(point_id_all)
-
-        pia_content = cursor.fetchall()[0]
-        pid, lati, longti, times, postc = [str(item) for item in pia_content]
-        # If current user self-reports as infected, put him/her into affected.
-
         return {
             "Point_id": pid,
             "Latitude": lati,
@@ -221,8 +200,9 @@ def client_complex(request):
     if request.method == 'GET':
         if curr_op == 'state':
             complex_q1 = 'Select count(ac.Client_id) ' +\
-            'From CS411_Affected_Client ac natural join CS411_uszips cu ' +\
+            'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
             'Group by cu.state_id'
+            print(complex_q1)
             cursor.execute(complex_q1)
             count_state = cursor.fetchall()[0]
             print(count_state)
