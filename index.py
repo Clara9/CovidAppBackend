@@ -118,30 +118,6 @@ def point_id(request):
             "Postcode": postc
         }
 
-def client_complex(request):
-    curr_op = request.matchdict['name']
-    if request.method == 'GET':
-        if curr_op == 'state':
-            complex_q1 = 'Select count(ac.Client_id) ' +\
-            'From CS411_Affected_Client ac natural join CS411_uszips cu ' +\
-            'Group by cu.state_id'
-            cursor.execute(complex_q1)
-            count_state = cursor.fetchall()[0]
-            print(count_state)
-            return {
-                "number": count_state
-            }
-        if curr_op == 'zipcode':
-            complex_q2 = 'Select count(cacp.Point_id) ' +\
-            'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
-            'Group by cu2.zip'
-            cursor.execute(complex_q2)
-            count_zipcode = cursor.fetchall()
-            print(count_zipcode)
-            # return {
-            #     "number": count_zipcode
-            # }
-
 def client(request):
     body = request.json_body
     # print(body.Latitude)
@@ -227,10 +203,43 @@ def client_id(request):
         }
 
 def affected_client(request):
+    cid = request.matchdict['id']
     if request.method == 'DELETE':
         ac_del = 'Delete From CS411_Affected_Client_Point Where Client_id = ' + str(client_last_id)
         cursor.execute(ac_del)
-        print(ac_del)
+        cid, ct, gender, name = [str(item) for item in cd_content]
+        return {
+            "Client_id": cid,
+            "Create_time": ct,
+            "Gender": gender,
+            "Name": name
+        }
+
+
+def client_complex(request):
+    curr_op = request.matchdict['name']
+    if request.method == 'GET':
+        if curr_op == 'state':
+            complex_q1 = 'Select count(ac.Client_id) ' +\
+            'From CS411_Affected_Client ac natural join CS411_uszips cu ' +\
+            'Group by cu.state_id'
+            cursor.execute(complex_q1)
+            count_state = cursor.fetchall()[0]
+            print(count_state)
+            return {
+                "number": count_state
+            }
+        if curr_op == 'zipcode':
+            complex_q2 = 'Select count(cacp.Point_id) ' +\
+            'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
+            'Group by cu2.zip'
+            cursor.execute(complex_q2)
+            count_zipcode = cursor.fetchall()
+            print(count_zipcode)
+            # return {
+            #     "number": count_zipcode
+            # }
+
 
 if __name__ == '__main__':
     with Configurator() as config:
