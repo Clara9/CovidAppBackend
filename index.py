@@ -170,8 +170,9 @@ def client_id(request):
         cd_content = cursor.fetchall()[0]
         client_del_after = 'Delete From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_del_after)
-        a_client_del_after2 = 'Delete From CS411_Affected_Client Where Client_id = ' + str(cid)
+        client_del_after2 = 'Delete From CS411_Affected_Client Where Client_id = ' + str(cid)
         cursor.execute(client_del_after2)
+        mydb.commit()
         # print(cd_content)
         cid, ct, s_flag, postc = [str(item) for item in cd_content]
         return {
@@ -193,7 +194,6 @@ def affected_client(request):
             "Gender": gender,
             "Name": name
         }
-
 
 def client_state(request):
     # curr_op = request.matchdict['name']
