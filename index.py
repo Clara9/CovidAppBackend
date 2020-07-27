@@ -14,16 +14,6 @@ mydb = mysql.connector.connect(
 )
 cursor = mydb.cursor()
 
-def db_select(input):
-    cuursor = mydb.cursor()
-    s = cursor.execute(inpuut)
-    return cursor.fetchall()
-
-def db_fetch(input):
-    cuursor = mydb.cursor()
-    s = cursor.execute(inpuut)
-    return cursor.fetchall()
-
 # check if input fields is in required fields
 # def validator(input, required):
 #     keys = input.keys()
@@ -51,11 +41,12 @@ def point(request):
         cursor.execute(point_select)
         # get result of last query
         pid = cursor.fetchall()[0][0]
-        # print(cid)
+        mydb.commit()
         point_all = 'Select * From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_all)
         p_content = cursor.fetchall()[0]
-        print(p_content)
+        mydb.commit()
+        # print(p_content)
         pid, lati, longti, times, postc = [str(item) for item in p_content]
         return {
             "Point_id": pid,
@@ -71,6 +62,7 @@ def point_id(request):
         point_get = 'Select * ' + 'From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_get)
         pi_content = cursor.fetchall()[0]
+        mydb.commit()
         # initialize to be not sick (flag_s = 0)
         pid, lati, longti, times, postc = [str(item) for item in pi_content]
         return {
@@ -85,9 +77,11 @@ def point_id(request):
         point_del_before = 'Select * From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_del_before)
         cp_content = cursor.fetchall()[0]
-        point_del_after = 'Delete From CS411_Client Where Client_id = ' + str(cid)
+        mydb.commit()
+        point_del_after = 'Delete From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_del_after)
-        # print(cp_content)
+        print(point_del_after)
+        mydb.commit()
         pid, lati, longti, times, postc = [str(item) for item in cp_content]
         return {
             "Point_id": pid,
@@ -117,13 +111,14 @@ def client(request):
         client_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_all)
         c_content = cursor.fetchall()[0]
+        # mydb.commit()
         # print(c_content)
         cid, ct, s_flag, postc = [str(item) for item in c_content]
         return {
             "Client_id": cid,
             "Creat_time": ct,
             "Sick_or_not": s_flag,
-            "Post_code": postc
+            "Postcode": postc
         }
 
 def client_id(request):
@@ -140,36 +135,40 @@ def client_id(request):
             "Client_id": cid,
             "Creat_time": ctime,
             "Sick_or_not": flag_s,
-            "Post_code": postc
+            "Postcode": postc
         }
 
     if request.method == 'PUT':
         client_put = 'Update CS411_Client Set Sick_or_not=1 Where Client_id = ' + str(cid)
         cursor.execute(client_put)
-
+        mydb.commit()
         client_id_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_id_all)
 
         ci_content = cursor.fetchall()[0]
         cid, ct, s_flag, postc = [str(item) for item in ci_content]
+        mydb.commit()
         # If current user self-reports as infected, put him/her into affected.
-        if s_flag == 1:
+        # print(s_flag)
+        if s_flag:
             ac_insert = 'Insert Into CS411_Affected_Client(Client_id) VALUES (' + str(cid) + ')'
             cursor.execute(ac_insert)
-        
+            mydb.commit()
         return {
             "Client_id": cid,
             "Creat_time": ct,
             "Sick_or_not": s_flag,
-            "Post_code": postc
+            "Postcode": postc
         }
 
     if request.method == 'DELETE':
         client_del_before = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_del_before)
         cd_content = cursor.fetchall()[0]
+        mydb.commit()
         client_del_after = 'Delete From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_del_after)
+        mydb.commit()
         client_del_after2 = 'Delete From CS411_Affected_Client Where Client_id = ' + str(cid)
         cursor.execute(client_del_after2)
         mydb.commit()
@@ -179,15 +178,21 @@ def client_id(request):
             "Client_id": cid,
             "Creat_time": ct,
             "Sick_or_not": s_flag,
-            "Post_code": postc
+            "Postcode": postc
         }
 
-def affected_client(request):
+def affected_client_id(request):
     cid = request.matchdict['id']
+    print(cid)
     if request.method == 'DELETE':
-        ac_del = 'Delete From CS411_Affected_Client_Point Where Client_id = ' + str(client_last_id)
-        cursor.execute(ac_del)
-        cid, ct, gender, name = [str(item) for item in cd_content]
+        ac_del_before = 'Select * From CS411_Client Where Client_id = ' + str(cid)
+        cursor.execute(ac_del_before)
+        ac_content = cursor.fetchall()[0]
+        mydb.commit()
+        ac_del_after = 'Delete From CS411_Affected_Client Where Client_id = ' + str(cid)
+        cursor.execute(ac_del_after)
+        mydb.commit()
+        cid, ct, gender, name = [str(item) for item in ac_content]
         return {
             "Client_id": cid,
             "Create_time": ct,
@@ -248,8 +253,9 @@ if __name__ == '__main__':
         config.add_view(client_id, route_name='client_id', renderer='json')
         app = config.make_wsgi_app()
 
-        # config.add_route('client_complex', '/client_complex/{name}')
-        # config.add_view(client_complex, route_name='client_complex', renderer='json')
+        config.add_route('affected_client_id', '/affected/{id}')
+        config.add_view(affected_client_id, route_name='affected_client_id', renderer='json')
+        app = config.make_wsgi_app()
 
         config.add_route('client_state', '/state/{state}')
         config.add_view(client_state, route_name='client_state', renderer='json')
