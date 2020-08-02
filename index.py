@@ -214,60 +214,48 @@ def affected_client_id(request):
             "Name": name
         }
 
+def input_state(state):
+    complex_state = 'select cac.Create_time_1, count(cc.Client_id )' +\
+    'from (select date(Create_time_1) as Create_time_1 ,Client_id from CS411_Affected_Client) as cac ' +\
+    'natural join CS411_Client cc join CS411_uszips cu on (cc.Postcode = cu.zip)' +\
+    'where cac.Create_time_1 BETWEEN "2020-08-07"-INTERVAL 7 day and "2020-08-07" and cu.state_id = "' + state + '" ' +\
+    'group by cac.Create_time_1 ' +\
+    'order by cac.Create_time_1'
+    cursor.execute(complex_state)
+    # print(complex_state)
+    count_state = cursor.fetchall()
+    return_state = {}
+    for item in count_state:
+        return_state[str(item[0])] = item[1]
+    return return_state
+    
 def client_state(request):
     # curr_op = request.matchdict['name']
     state = request.matchdict['state']
+
     if request.method == 'GET':
-        if state == 'IL':
-            complex_q1 = 'Select count(ac.Client_id) ' +\
-            'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
-            'Group by cu.state_id'
-            # complex_q1 = 'select count(ac.Client_id) from CS411_Affected_Client ac natural join CS411_uszips cu group by cu.state_id'
-            # print(complex_q1)
-            # cursor.execute(complex_q1)
-            # count_state = cursor.fetchall()[0]
-            # print(count_state)
-            return [6, 6, 0, 7, 3, 5, 7]
-        if state == 'MI':
-            return [10, 4, 1, 7, 7, 4, 6]
-        if state == 'zipcode':
-            return [3, 9, 7, 8, 6, 2, 4]
-            # # complex_q2 = 'Select count(cacp.Point_id) ' +\
-            # # 'From CS411_Affected_Client_Point cacp natural join CS411_Point cp natural join CS411_uszips cu2 ' +\
-            # # 'Group by cu2.zip'
-            # cursor.execute(complex_q2)
-            # count_zipcode = cursor.fetchall()
-            # print(count_zipcode)
-            # # return {
-            # #     "number": count_zipcode
-            # # }
+        return input_state(state)
+
+def input_zip(zip):
+    complex_zip = 'select cp.Create_time, count(cp.Point_id )' +\
+    'from (select date(Create_time) as Create_time, Point_id , Postcode from CS411_Point) as cp ' +\
+    'natural join CS411_Affected_Client_Point cacp join CS411_uszips cu on (cp.Postcode = cu.zip) ' +\
+    'where cp.Create_time BETWEEN "2020-08-07"-INTERVAL 7 day and "2020-08-07" and cp.Postcode = "' + zip + '" ' +\
+    'group by cp.Create_time ' +\
+    'order by cp.Create_time '
+    # print(complex_zip)
+    cursor.execute(complex_zip)
+    count_zip = cursor.fetchall()
+    return_zip = {}
+    for item in count_zip:
+        return_zip[str(item[0])] = item[1]
+    return return_zip
 
 def client_zip(request):
     zipc = request.matchdict['zip']
-    if request.method == 'GET':
-        if zipc == '61801':
-            return [7, 9, 7, 8, 3, 1, 5]
-        if zipc == '61820':
-            return [10, 7, 6, 8, 2, 8, 3]
-        if zipc == '61825':
-            return [5, 8, 2, 8, 6, 3, 7]
 
-def search():
-    search_sql = "select cac.Create_time, count(cc.Client_id)" +\
-        " from CS411_Affected_Client cac natural join CS411_Client cc join CS411_uszips cu on (cc.Postcode = cu.zip)" +\
-        "where cac.Create_time BETWEEN '2020-07-26' and '2020-07-26' and cu.state_id = 'IL'" +\
-        "group by cc.Create_time" +\
-        "ORDER by cc.Create_time"
-    cursor.execute(search_sql)
-    content = cursor.fetchall()[0]
-    cid, ct, s_flag, postc = [str(item) for item in ci_content]
-    mydb.commit()
-    return {
-            "Client_id": cid,
-            "Create_time": ct,
-            "Gender": gender,
-            "Name": name
-        }
+    if request.method == 'GET':
+        return input_zip(zipc)
 
 
 if __name__ == '__main__':
