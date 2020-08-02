@@ -33,15 +33,29 @@ cursor = mydb.cursor()
 def point(request):
     body = request.json_body
     if request.method == 'POST':
+        # insert point
         point_insert = 'Insert Into CS411_Point(Latitude, Longitude, Postcode) VALUES ('\
          + str(body['Latitude']) + ',' + str(body['Longitude']) + ',' + str(body['Postcode']) + ')'
+        # print(point_insert)
         cursor.execute(point_insert)
         mydb.commit()
+
+        point_sick = 'Select c.Sick_or_not from CS411_Client c Where c.Client_id = ' + str(body['Client_id'])
+        cursor.execute(point_sick)
+        s_flag = cursor.fetchall()[0]
+        mydb.commit()
+
         point_select = 'Select last_insert_id()'
         cursor.execute(point_select)
-        # get result of last query
         pid = cursor.fetchall()[0][0]
         mydb.commit()
+        if s_flag:
+            a_point_insert = "Insert Into CS411_Affected_Client_Point(Point_id, Client_id) " + "Values (" + str(pid) + ", " + str(body['Client_id']) + ")"
+            # print(a_point_insert)
+            cursor.execute(a_point_insert)
+            mydb.commit()
+
+        # get result of last query
         point_all = 'Select * From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_all)
         p_content = cursor.fetchall()[0]
@@ -100,7 +114,7 @@ def client(request):
     #     print('Status: 404 Not Found')
     #     return
         client_insert = 'Insert Into CS411_Client(Postcode) VALUES (' + str(body['Postcode']) + ')'
-        # print(client_insert)
+        print(client_insert)
         cursor.execute(client_insert)
 
         client_select = 'Select last_insert_id()'
@@ -111,7 +125,7 @@ def client(request):
         client_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_all)
         c_content = cursor.fetchall()[0]
-        # mydb.commit()
+        mydb.commit()
         # print(c_content)
         cid, ct, s_flag, postc = [str(item) for item in c_content]
         return {
@@ -205,9 +219,9 @@ def client_state(request):
     state = request.matchdict['state']
     if request.method == 'GET':
         if state == 'IL':
-            # complex_q1 = 'Select count(ac.Client_id) ' +\
-            # 'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
-            # 'Group by cu.state_id'
+            complex_q1 = 'Select count(ac.Client_id) ' +\
+            'From CS411_Affected_Client ac natural join CS411_Client cc join CS411_uszips cu on cc.Postcode = cu.zip' +\
+            'Group by cu.state_id'
             # complex_q1 = 'select count(ac.Client_id) from CS411_Affected_Client ac natural join CS411_uszips cu group by cu.state_id'
             # print(complex_q1)
             # cursor.execute(complex_q1)
@@ -237,6 +251,24 @@ def client_zip(request):
             return [10, 7, 6, 8, 2, 8, 3]
         if zipc == '61825':
             return [5, 8, 2, 8, 6, 3, 7]
+
+def search():
+    search_sql = "select cac.Create_time, count(cc.Client_id)" +\
+        " from CS411_Affected_Client cac natural join CS411_Client cc join CS411_uszips cu on (cc.Postcode = cu.zip)" +\
+        "where cac.Create_time BETWEEN '2020-07-26' and '2020-07-26' and cu.state_id = 'IL'" +\
+        "group by cc.Create_time" +\
+        "ORDER by cc.Create_time"
+    cursor.execute(search_sql)
+    content = cursor.fetchall()[0]
+    cid, ct, s_flag, postc = [str(item) for item in ci_content]
+    mydb.commit()
+    return {
+            "Client_id": cid,
+            "Create_time": ct,
+            "Gender": gender,
+            "Name": name
+        }
+
 
 if __name__ == '__main__':
     with Configurator() as config:
