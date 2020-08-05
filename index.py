@@ -181,7 +181,7 @@ def client_id(request):
                 print(temp)
             temp = temp + " Commit;"
             print(temp)
-            cursor.execute(temp)
+            cursor.execute(temp,multi=True)
             mydb.commit()
         return {
             "Client_id": cid,
