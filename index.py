@@ -229,7 +229,7 @@ def input_state(state):
     complex_state = 'select cac.Create_time_1, count(cc.Client_id )' +\
     'from (select date(Create_time_1) as Create_time_1 ,Client_id from CS411_Affected_Client) as cac ' +\
     'natural join CS411_Client cc join CS411_uszips cu on (cc.Postcode = cu.zip)' +\
-    'where cac.Create_time_1 BETWEEN "2020-08-07"-INTERVAL 7 day and "2020-08-07" and cu.state_id = "' + state + '" ' +\
+    'where cac.Create_time_1 BETWEEN "2020-08-04"-INTERVAL 7 day and "2020-08-07" and cu.state_id = "' + state + '" ' +\
     'group by cac.Create_time_1 ' +\
     'order by cac.Create_time_1'
     cursor.execute(complex_state)
@@ -251,7 +251,7 @@ def input_zip(zip):
     complex_zip = 'select cp.Create_time, count(cp.Point_id )' +\
     'from (select date(Create_time) as Create_time, Point_id , Postcode from CS411_Point) as cp ' +\
     'natural join CS411_Affected_Client_Point cacp join CS411_uszips cu on (cp.Postcode = cu.zip) ' +\
-    'where cp.Create_time BETWEEN "2020-08-07"-INTERVAL 7 day and "2020-08-07" and cp.Postcode = "' + zip + '" ' +\
+    'where cp.Create_time BETWEEN "2020-08-04"-INTERVAL 7 day and "2020-08-07" and cp.Postcode = "' + zip + '" ' +\
     'group by cp.Create_time ' +\
     'order by cp.Create_time '
     # print(complex_zip)
