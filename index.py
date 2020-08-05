@@ -3,6 +3,7 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 import mysql.connector
 import datetime
+from datetime import date
 import random
 from math import radians, cos, sin, asin, sqrt
 
@@ -170,7 +171,7 @@ def client_id(request):
             mydb.commit()
             body = request.json_body
             pids = body['pids']
-            temp="Start Transaction; "
+            temp= "Start Transaction; "
             for pid in pids:
                 ap_insert = 'Insert Into CS411_Affected_Client_Point(Client_id, Point_id) VALUES (' + str(cid) + ',' + str(pid) + '); '
                 temp = temp + ap_insert
@@ -229,11 +230,11 @@ def input_state(state):
     complex_state = 'select cac.Create_time_1, count(cc.Client_id )' +\
     'from (select date(Create_time_1) as Create_time_1 ,Client_id from CS411_Affected_Client) as cac ' +\
     'natural join CS411_Client cc join CS411_uszips cu on (cc.Postcode = cu.zip)' +\
-    'where cac.Create_time_1 BETWEEN "2020-08-04"-INTERVAL 7 day and "2020-08-07" and cu.state_id = "' + state + '" ' +\
+    'where cac.Create_time_1 BETWEEN "' + str(date.today()) + '"-INTERVAL 7 day and "' +  str(date.today()) + '" and cu.state_id = "' + state + '" ' +\
     'group by cac.Create_time_1 ' +\
     'order by cac.Create_time_1'
-    cursor.execute(complex_state)
     # print(complex_state)
+    cursor.execute(complex_state)
     states = []
     count_state = cursor.fetchall()
     for item in count_state:
@@ -251,17 +252,16 @@ def input_zip(zip):
     complex_zip = 'select cp.Create_time, count(cp.Point_id )' +\
     'from (select date(Create_time) as Create_time, Point_id , Postcode from CS411_Point) as cp ' +\
     'natural join CS411_Affected_Client_Point cacp join CS411_uszips cu on (cp.Postcode = cu.zip) ' +\
-    'where cp.Create_time BETWEEN "2020-08-04"-INTERVAL 7 day and "2020-08-07" and cp.Postcode = "' + zip + '" ' +\
+    'where cp.Create_time BETWEEN "' + str(date.today()) + '"-INTERVAL 7 day and "' +  str(date.today()) + '"and cp.Postcode = "' + zip + '" ' +\
     'group by cp.Create_time ' +\
     'order by cp.Create_time '
-    # print(complex_zip)
+    print(complex_zip)
     cursor.execute(complex_zip)
     count_zip = cursor.fetchall()
     zips = []
     for item in count_zip:
         zips.append(item[1])
     return zips
-    # return return_zip
 
 def client_zip(request):
     zipc = request.matchdict['zip']
