@@ -58,7 +58,7 @@ def point(request):
         cursor.execute(point_all)
         p_content = cursor.fetchall()[0]
         mydb.commit()
-        
+
         # print(p_content)
         pid, lati, longti, times, postc = [str(item) for item in p_content]
         return {
@@ -234,11 +234,11 @@ def input_state(state):
     'order by cac.Create_time_1'
     cursor.execute(complex_state)
     # print(complex_state)
+    states = []
     count_state = cursor.fetchall()
-    return_state = {}
     for item in count_state:
-        return_state[str(item[0])] = item[1]
-    return return_state
+        states.append(item[1])
+    return states
     
 def client_state(request):
     # curr_op = request.matchdict['name']
@@ -257,10 +257,11 @@ def input_zip(zip):
     # print(complex_zip)
     cursor.execute(complex_zip)
     count_zip = cursor.fetchall()
-    return_zip = {}
+    zips = []
     for item in count_zip:
-        return_zip[str(item[0])] = item[1]
-    return return_zip
+        zips.append(item[1])
+    return zips
+    # return return_zip
 
 def client_zip(request):
     zipc = request.matchdict['zip']
