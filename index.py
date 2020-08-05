@@ -4,6 +4,7 @@ from pyramid.response import Response
 import mysql.connector
 import datetime
 import random
+from math import radians, cos, sin, asin, sqrt
 
 mydb = mysql.connector.connect(
   host="173.82.151.35",
@@ -122,6 +123,7 @@ def client(request):
         # get result of last query
         cid = cursor.fetchall()[0][0]
         # print(cid)
+
         client_all = 'Select * From CS411_Client Where Client_id = ' + str(cid)
         cursor.execute(client_all)
         c_content = cursor.fetchall()[0]
@@ -165,9 +167,15 @@ def client_id(request):
         # If current user self-reports as infected, put him/her into affected.
         # print(s_flag)
         if s_flag:
-            ac_insert = 'Insert Into CS411_Affected_Client(Client_id) VALUES (' + str(cid) + ')'
+            ac_insert = 'Insert Into CS411_Affected_Client(Client_id) VALUES (' + str(cid) + ') '
             cursor.execute(ac_insert)
             mydb.commit()
+            body = request.json_body
+            pids = body['pids']
+            for pid in pids:
+                ap_insert = 'Insert Into CS411_Affected_Client_Point(Client_id, Point_id) VALUES (' + str(cid) + ',' + str(pid) + ') '
+                cursor.execute(ap_insert)
+                mydb.commit()
         return {
             "Client_id": cid,
             "Creat_time": ct,
@@ -257,6 +265,60 @@ def client_zip(request):
     if request.method == 'GET':
         return input_zip(zipc)
 
+# this function is used to calculate the distance between two points based on the latitude and longtitude, true if distance is less than 50 meters
+# learn this function mainly from the internet
+def geodistance(lon1,lat1,lon2,lat2):
+    lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)]) # transfer latitude and longtitude to the radians
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a=sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    distance = 2 * asin(sqrt(a)) * 6371 * 1000 # radians of the earth is 6371km
+    distance = round(distance,3)
+    return distance <= 50 #return distance in meters
+
+# measure the time difference, true if difference is less than 20 minute, which is 1200 seconds
+def timedifference(datetime1, datetime2):
+    diff = abs(datetime1 - datetime2)
+    return (diff.days == 0) and (diff.seconds < 1200)
+
+#this function is used to check if any clients are too closed to the affected_client
+#@return: return a list of tuple, tuple is (pid, count)
+#pid refers to the points that might be in risk of being affected, count is the number of point that is in danger distance with the point.
+def advanced(request):
+    cid = request.matchdict['id']
+    if request.method == 'GET':
+        print('start my advanced function')
+        findallaffected = 'Select p.Latitude lat, p.Longitude lon, p.Create_time time From CS411_Affected_Client_Point acp join CS411_Point p on acp.Point_id = p.Point_id'
+        cursor.execute(findallaffected) #cursor execute the sql query
+        affectedlist = [] #list of affected client, each element here is a tuple like (double, double, datetime)
+        for lat, lon, time in cursor:
+            affectedlist.append((float(lon),float(lat),time))
+        mydb.commit()
+        #print(affectedlist)
+        getunaffected = "Select Point_id, Latitude, Longitude, Create_time From CS411_Point where Point_id = " + str(cid)
+        cursor.execute(getunaffected)
+
+        indangerdict = {} #list of point that has risk of being affected, each element here is a tuple like (string(point_id), int(number of closed affected points))
+        for Point_id, Latitude, Longitude, Create_time in cursor:
+            #print(pid2)
+            latitude2 = float(Latitude)
+            longtitude2 = float(Longitude)
+            datetime2 = Create_time
+            count = 0
+            c = 0
+            for ele in affectedlist:
+                c += 1
+                if c % 10 == 0:
+                    print('ten completed')
+                if geodistance(ele[0], ele[1], longtitude2, latitude2) and timedifference(ele[2], datetime2):
+                    count += 1
+            if count > 0:
+                print('one danger')
+            indangerdict[Point_id] = str(count)
+        mydb.commit()
+        #print('search resut is'+ str(c))
+        return indangerdict
+#new added for advanced
 
 if __name__ == '__main__':
     with Configurator() as config:
@@ -283,6 +345,11 @@ if __name__ == '__main__':
 
         config.add_route('client_zip', '/zip/{zip}')
         config.add_view(client_zip, route_name='client_zip', renderer='json')
+        app = config.make_wsgi_app()
+
+        #new added for advanced
+        config.add_route('advanced', '/advanced/{id}')  #/advanced means what should I write in the request
+        config.add_view(advanced, route_name='advanced', renderer='json') # advanced here should be the function to call
         app = config.make_wsgi_app()
 
         # config.add_route('client_state', '/state/{state}')
