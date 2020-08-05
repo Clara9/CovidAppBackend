@@ -50,19 +50,15 @@ def point(request):
         cursor.execute(point_select)
         pid = cursor.fetchall()[0][0]
         mydb.commit()
-        transaction = "start transaction insert into CS411_Point () values();" +\
-        "insert into CS411_Affected_Client_Point() values();" +\
-        "commit;"
         # a_point_insert = "Insert Into CS411_Affected_Client_Point(Point_id, Client_id) " + "Values (" + str(pid) + ", " + str(body['Client_id']) + ")"
         # print(a_point_insert)
-        cursor.execute(transaction)
-        mydb.commit()
 
         # get result of last query
         point_all = 'Select * From CS411_Point Where Point_id = ' + str(pid)
         cursor.execute(point_all)
         p_content = cursor.fetchall()[0]
         mydb.commit()
+        
         # print(p_content)
         pid, lati, longti, times, postc = [str(item) for item in p_content]
         return {
