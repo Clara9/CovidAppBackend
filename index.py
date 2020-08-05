@@ -99,7 +99,7 @@ def point_id(request):
         pid, lati, longti, times, postc = [str(item) for item in cp_content]
         return {
             "Point_id": pid,
-            "Latitude": lati, 
+            "Latitude": lati,
             "Longitude": longti,
             "Create_time": times,
             "Postcode": postc
@@ -240,7 +240,7 @@ def input_state(state):
     for item in count_state:
         states.append(item[1])
     return states
-    
+
 def client_state(request):
     # curr_op = request.matchdict['name']
     state = request.matchdict['state']
