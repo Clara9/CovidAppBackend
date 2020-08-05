@@ -50,11 +50,13 @@ def point(request):
         cursor.execute(point_select)
         pid = cursor.fetchall()[0][0]
         mydb.commit()
-        if s_flag:
-            a_point_insert = "Insert Into CS411_Affected_Client_Point(Point_id, Client_id) " + "Values (" + str(pid) + ", " + str(body['Client_id']) + ")"
-            # print(a_point_insert)
-            cursor.execute(a_point_insert)
-            mydb.commit()
+        transaction = "start transaction insert into CS411_Point () values();" +\
+        "insert into CS411_Affected_Client_Point() values();" +\
+        "commit;"
+        # a_point_insert = "Insert Into CS411_Affected_Client_Point(Point_id, Client_id) " + "Values (" + str(pid) + ", " + str(body['Client_id']) + ")"
+        # print(a_point_insert)
+        cursor.execute(transaction)
+        mydb.commit()
 
         # get result of last query
         point_all = 'Select * From CS411_Point Where Point_id = ' + str(pid)
@@ -172,10 +174,15 @@ def client_id(request):
             mydb.commit()
             body = request.json_body
             pids = body['pids']
+            temp="Start Transaction; "
             for pid in pids:
-                ap_insert = 'Insert Into CS411_Affected_Client_Point(Client_id, Point_id) VALUES (' + str(cid) + ',' + str(pid) + ') '
-                cursor.execute(ap_insert)
-                mydb.commit()
+                ap_insert = 'Insert Into CS411_Affected_Client_Point(Client_id, Point_id) VALUES (' + str(cid) + ',' + str(pid) + '); '
+                temp = temp + ap_insert
+                print(temp)
+            temp = temp + " Commit;"
+            print(temp)
+            cursor.execute(temp)
+            mydb.commit()
         return {
             "Client_id": cid,
             "Creat_time": ct,
