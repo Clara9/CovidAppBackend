@@ -72,8 +72,8 @@ Setup mock servers
 ```
 
 ## Source
-https://github.com/Pylons/pyramid \\
-https://github.com/alisonhall/postman-introduction/blob/master/README.md
+- https://github.com/Pylons/pyramid
+- https://github.com/alisonhall/postman-introduction/blob/master/README.md
 
 
 ## Contact
