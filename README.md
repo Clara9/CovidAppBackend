@@ -4,7 +4,18 @@
 This is the backend of a mobile app which updates COVID statistics based on location, and alerts user if there is an infected patiennt nearby. The alert happens while protecting user privacy.
 
 ## Technologies
-REST API, Postman, Pyramid framework
+- REST API
+- Postman
+- Pyramid framework
+- AWS Kubernetes
+Below are the quote for prerequisites.
+```
+An account on AWS, with administrative rights to create and deploy an RDS database and EKS cluster.
+Details for the AWS programmatic access (AWS access Key ID, AWS Secret Access Key)
+Details of your AWS S3 buckets (AWS access Key ID, AWS Secret Access Key)
+Access to Pyramid’s Kubernetes Configurator tool in the online customer portal.
+Optionally, it is useful to have a Pyramid license key ready. The key needs to be an “Enterprise Edition” key (trial or otherwise).
+```
 
 ## Languages
 Python
@@ -13,10 +24,16 @@ Python
 - This file includings database information, REST endpoints, and Pyramid framework configuration.
 - Download Postman: https://www.postman.com/downloads/
 
+## Deploy References
+- This tutorial provides a deployment process from Pyrmid to 
+- This app is deployed to AWS RDS
+- http://help.pyramidanalytics.com/Content/Root/Guides/installation/Kubernetes/Deploying%20Pyramid%20to%20AWS%20Kubernetes.htm
+
+
 ## Reproduction
 - Download index.py.
   - This is the file for Pyramid setup and maiin functions.
-  - 
+
 ## Pyramid Introduction
 ```
 Pyramid is a small, fast, down-to-earth, open source Python web framework. It makes real-world web application development and deployment more fun, more predictable, and more productive.
@@ -57,6 +74,7 @@ Setup mock servers
 ## Source
 https://github.com/Pylons/pyramid
 https://github.com/alisonhall/postman-introduction/blob/master/README.md
+
 
 ## Contact
 Feel free to contact me at zwei9@hotmail.com, for any questions or suggestiions.
